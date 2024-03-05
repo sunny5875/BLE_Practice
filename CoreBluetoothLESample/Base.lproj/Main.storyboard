@@ -157,7 +157,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" text="Here is a bunch of sample text. Hold another device close to see the transfer happen." translatesAutoresizingMaskIntoConstraints="NO" id="b4y-1z-Myd">
+                            <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" fixedFrame="YES" text="I am peripheral" translatesAutoresizingMaskIntoConstraints="NO" id="b4y-1z-Myd">
                                 <rect key="frame" x="8" y="48" width="359" height="716"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>

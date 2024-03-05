@@ -23,9 +23,10 @@ class CentralViewController: UIViewController {
     private var transferCharacteristic: CBCharacteristic?
     private var writeIterationsComplete = 0
     private var connectionIterationsComplete = 0
-    private let defaultIterations = 100 // 기기 검색 횟수
+    private let defaultIterations = 10
     
     private var data: [Data] = [] // 받은 데이터 리스트, 일대다를 위해 data 리스트임
+    private let sendMessage = "I am central"
     
     override func viewDidLoad() {
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
@@ -43,9 +44,13 @@ class CentralViewController: UIViewController {
         data.removeAll(keepingCapacity: false)
     }
     
-    /// 기기를 수신, 현재는 안드로이드 검색을 위해 모든 서비스를 검색하게 풀어둠
+    /// 기기 검색
     private func retrievePeripheral() {
-        centralManager.scanForPeripherals(withServices: nil, options: nil)
+        let scanOptions: [String: Any] = [
+            CBCentralManagerScanOptionSolicitedServiceUUIDsKey: [],
+            CBCentralManagerScanOptionAllowDuplicatesKey: false
+        ]
+        centralManager.scanForPeripherals(withServices: [TransferService.serviceUUID], options: scanOptions)
         //        let connectedPeripherals: [CBPeripheral] = (centralManager.retrieveConnectedPeripherals(withServices: [TransferService.serviceUUID]))
         //
         //        os_log("Found connected Peripherals with transfer service: %@", connectedPeripherals)
@@ -69,7 +74,7 @@ class CentralViewController: UIViewController {
         for peripheral in discoveredPeripheral {
             for service in (peripheral.1.services ?? [] as [CBService]) {
                 for characteristic in (service.characteristics ?? [] as [CBCharacteristic]) {
-                    if characteristic.isNotifying { // && characteristic.uuid == TransferService.characteristicUUID
+                    if characteristic.isNotifying && (characteristic.uuid == TransferService.receiveCharacteristicUUID || characteristic.uuid == TransferService.sendCharacteristicUUID) {
                         peripheral.1.setNotifyValue(false, for: characteristic)
                     }
                 }
@@ -141,12 +146,11 @@ extension CentralViewController: CBCentralManagerDelegate {
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral,
                         advertisementData: [String: Any], rssi RSSI: NSNumber) {
         // 신호가 약한 경우 거르기
-        guard RSSI.intValue >= -100 else { return }
+        guard RSSI.intValue >= -80 else { return }
         
         // 연결되지 않은 기기의 경우 name이 안뜨는 경우도 있어 CBAdvertisementDataLocalNameKey로 가져오기
-        guard let peripheralName = peripheral.name ??
-                                   (advertisementData[CBAdvertisementDataLocalNameKey] as? String)
-        else { return }
+        let peripheralName = peripheral.name ??
+                                   (advertisementData[CBAdvertisementDataLocalNameKey] as? String) ?? "Unnamed"
         
         os_log("Discovered %s, UUID: %s %d", peripheralName, peripheral.identifier.uuidString, peripheral.ancsAuthorized)
         
@@ -167,10 +171,9 @@ extension CentralViewController: CBCentralManagerDelegate {
         writeIterationsComplete = 0
         
         data.removeAll(keepingCapacity: false)
-        
         peripheral.delegate = self
-//        peripheral.discoverServices([TransferService.serviceUUID])
-        peripheral.discoverServices(nil)
+    
+        peripheral.discoverServices([TransferService.serviceUUID])
     }
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
@@ -188,10 +191,9 @@ extension CentralViewController: CBCentralManagerDelegate {
 
 extension CentralViewController: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
-        for service in invalidatedServices { // where service.uuid == TransferService.serviceUUID {
+        for service in invalidatedServices  where service.uuid == TransferService.serviceUUID {
             os_log("Transfer service is invalidated - rediscover services")
-//            peripheral.discoverServices([TransferService.serviceUUID])
-            peripheral.discoverServices(nil)
+            peripheral.discoverServices([TransferService.serviceUUID])
         }
     }
     /// service를 발견한 경우
@@ -204,25 +206,22 @@ extension CentralViewController: CBPeripheralDelegate {
         
         guard let peripheralServices = peripheral.services else { return }
         for service in peripheralServices {
-            peripheral.discoverCharacteristics([TransferService.characteristicUUID], for: service)
-//            peripheral.discoverCharacteristics(nil, for: service)
+            peripheral.discoverCharacteristics([TransferService.receiveCharacteristicUUID, TransferService.sendCharacteristicUUID], for: service)
         }
     }
-    /// characteristics를 찾은 경우
+    
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
-        if let error = error {
-            os_log("Error discovering characteristics: %s", error.localizedDescription)
-            cleanup()
-            return
+            if let characteristics = service.characteristics {
+                for characteristic in characteristics {
+                    if characteristic.uuid == TransferService.sendCharacteristicUUID {
+                        peripheral.readValue(for: characteristic)
+                    } else if characteristic.uuid == TransferService.receiveCharacteristicUUID {
+                        let data = sendMessage.data(using: .utf8)
+                        peripheral.writeValue(data!, for: characteristic, type: .withResponse)
+                    }
+                }
+            }
         }
-        
-        guard let serviceCharacteristics = service.characteristics else { return }
-        for characteristic in serviceCharacteristics {// where characteristic.uuid == TransferService.characteristicUUID {
-            transferCharacteristic = characteristic
-            peripheral.setNotifyValue(true, for: characteristic)
-        }
-        
-    }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
@@ -236,23 +235,28 @@ extension CentralViewController: CBPeripheralDelegate {
         
         os_log("Received %d bytes: %s", characteristicData.count, stringFromData)
         
-        if stringFromData == "EOM" {
-            DispatchQueue.main.async() {
-                let text = (peripheral.name ?? "기기이름") + ": " + (String(data: self.data.last ?? Data(), encoding: .utf8) ?? "") + "\n"
-                self.textView.text += text
-            }
-//            writeData(peripheral: peripheral)
-        } else {
-            data.append(characteristicData)
+        DispatchQueue.main.async() {
+            let text = (peripheral.name ?? "기기이름") + ": " + stringFromData + "\n"
+            self.textView.text += text
         }
+        
+//        if stringFromData == "EOM" {
+//            DispatchQueue.main.async() {
+//                let text = (peripheral.name ?? "기기이름") + ": " + (String(data: self.data.last ?? Data(), encoding: .utf8) ?? "") + "\n"
+//                self.textView.text += text
+//            }
+//            writeData(peripheral: peripheral)
+//        } else {
+//            data.append(characteristicData)
+//        }
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        print(characteristic.uuid.uuidString)
         if let error = error {
             os_log("Error changing notification state: %s", error.localizedDescription)
             return
         }
-//        guard characteristic.uuid == TransferService.characteristicUUID else { return }
         if characteristic.isNotifying {
             os_log("Notification began on %@", characteristic)
         } else {
@@ -261,14 +265,6 @@ extension CentralViewController: CBPeripheralDelegate {
         }
         
     }
-    
-    /*
-     *  This is called when peripheral is ready to accept more data when using write without response
-     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
-     os_log("Peripheral is ready, send data")
-     writeData(peripheral: peripheral)
-     }
-     */
 }
 
 extension CentralViewController: UITableViewDataSource, UITableViewDelegate {
