@@ -46,55 +46,55 @@ class PeripheralViewController: UIViewController {
     }
     
     
-//    private func sendData() {
-//        guard let sendCharacteristic, let connectedCentral else {
-//            return
-//        }
-//        
-//        if PeripheralViewController.sendingEOM {
-//            let didSend = peripheralManager.updateValue("EOM".data(using: .utf8)!, for: sendCharacteristic, onSubscribedCentrals: [connectedCentral])
-//            if didSend {
-//                PeripheralViewController.sendingEOM = false
-//                os_log("Sent: EOM")
-//            }
-//            return
-//        }
-//        
-//        if sendDataIndex >= dataToSend.count {
-//            return
-//        }
-//        
-//        var didSend = true
-//        while didSend {
-//            var amountToSend = dataToSend.count - sendDataIndex
-//            let mtu = connectedCentral.maximumUpdateValueLength
-//            amountToSend = min(amountToSend, mtu)
-//            let chunk = dataToSend.subdata(in: sendDataIndex..<(sendDataIndex + amountToSend))
-//            
-//            didSend = peripheralManager.updateValue(chunk, for: sendCharacteristic, onSubscribedCentrals: [connectedCentral])
-//            
-//            if !didSend {
-//                return
-//            }
-//            
-//            let stringFromData = String(data: chunk, encoding: .utf8)
-//            os_log("Sent %d bytes: %s", chunk.count, String(describing: stringFromData))
-//            
-//            sendDataIndex += amountToSend
-//            
-//            if sendDataIndex >= dataToSend.count {// 마지막인 경우
-//                PeripheralViewController.sendingEOM = true
-//                let eomSent = peripheralManager.updateValue("EOM".data(using: .utf8)!,
-//                                                            for: sendCharacteristic, onSubscribedCentrals: nil)
-//                
-//                if eomSent {
-//                    PeripheralViewController.sendingEOM = false
-//                    os_log("Sent: EOM")
-//                }
-//                return
-//            }
-//        }
-//    }
+    private func sendData() {
+        guard let sendCharacteristic, let connectedCentral else {
+            return
+        }
+        
+        if PeripheralViewController.sendingEOM {
+            let didSend = peripheralManager.updateValue("EOM".data(using: .utf8)!, for: sendCharacteristic, onSubscribedCentrals: [connectedCentral])
+            if didSend {
+                PeripheralViewController.sendingEOM = false
+                os_log("Sent: EOM")
+            }
+            return
+        }
+        
+        if sendDataIndex >= dataToSend.count {
+            return
+        }
+        
+        var didSend = true
+        while didSend {
+            var amountToSend = dataToSend.count - sendDataIndex
+            let mtu = connectedCentral.maximumUpdateValueLength
+            amountToSend = min(amountToSend, mtu)
+            let chunk = dataToSend.subdata(in: sendDataIndex..<(sendDataIndex + amountToSend))
+            
+            didSend = peripheralManager.updateValue(chunk, for: sendCharacteristic, onSubscribedCentrals: [connectedCentral])
+            
+            if !didSend {
+                return
+            }
+            
+            let stringFromData = String(data: chunk, encoding: .utf8)
+            os_log("Sent %d bytes: %s", chunk.count, String(describing: stringFromData))
+            
+            sendDataIndex += amountToSend
+            
+            if sendDataIndex >= dataToSend.count {// 마지막인 경우
+                PeripheralViewController.sendingEOM = true
+                let eomSent = peripheralManager.updateValue("EOM".data(using: .utf8)!,
+                                                            for: sendCharacteristic, onSubscribedCentrals: nil)
+                
+                if eomSent {
+                    PeripheralViewController.sendingEOM = false
+                    os_log("Sent: EOM")
+                }
+                return
+            }
+        }
+    }
     
     private func setupPeripheral() {
         let transferService = CBMutableService(type: TransferService.serviceUUID, primary: true)
@@ -105,9 +105,9 @@ class PeripheralViewController: UIViewController {
                                                              permissions: [.writeable])
         
         let transferCharacteristic2 = CBMutableCharacteristic(type: TransferService.sendCharacteristicUUID,
-                                                                    properties: [.read ],
-                                                                    value: textView.text.data(using: .utf8),
-                                                                    permissions: [.readable])
+                                                              properties: [.notify, .read ],
+                                                                    value: nil,
+                                                              permissions: [.readable])
         
         transferService.characteristics = [transferCharacteristic2, transferCharacteristic]
         
@@ -148,23 +148,23 @@ extension PeripheralViewController: CBPeripheralManagerDelegate {
         }
     }
     
-    
-//    func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
-//        os_log("Central subscribed to characteristic")
-//        dataToSend = textView.text.data(using: .utf8)!
-//        sendDataIndex = 0
-//        connectedCentral = central
-//        sendData()
-//    }
+    /// subscribe 시작하는 경우
+    func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
+        os_log("Central subscribed to characteristic")
+        dataToSend = textView.text.data(using: .utf8)!
+        sendDataIndex = 0
+        connectedCentral = central
+        sendData()
+    }
     
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didUnsubscribeFrom characteristic: CBCharacteristic) {
         os_log("Central unsubscribed from characteristic")
         connectedCentral = nil
     }
     
-//    func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
-//        sendData()
-//    }
+    func peripheralManagerIsReady(toUpdateSubscribers peripheral: CBPeripheralManager) {
+        sendData()
+    }
     
     /// 데이터를 받은 경우
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
@@ -174,19 +174,10 @@ extension PeripheralViewController: CBPeripheralManagerDelegate {
                   let stringFromData = String(data: requestValue, encoding: .utf8) else {
                 continue
             }
-            
-            print(aRequest.characteristic.uuid)
             os_log("Received write request of %d bytes: %s", requestValue.count, stringFromData)
             self.textView.text = stringFromData
         }
     }
-    
-//    func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveRead request: CBATTRequest) {
-//        connectedCentral = request.central
-//        dataToSend = textView.text.data(using: .utf8)!
-//        sendDataIndex = 0
-//        sendData()
-//    }
 }
 
 extension PeripheralViewController: UITextViewDelegate {
