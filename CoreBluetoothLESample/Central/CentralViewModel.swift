@@ -1,72 +1,45 @@
-/*
- See LICENSE folder for this sample’s licensing information.
- 
- Abstract:
- A class to discover, connect, receive notifications and write data to peripherals by using a transfer service and characteristic.
- */
+//
+//  CentralViewModel.swift
+//  CoreBluetoothLESample
+//
+//  Created by 현수빈 on 4/22/24.
+//  Copyright © 2024 Apple. All rights reserved.
+//
 
-import UIKit
+import Foundation
+import OSLog
 import CoreBluetooth
-import os
+import Combine
 
-class CentralViewController: UIViewController {
+class CentralViewModel: NSObject, ObservableObject {
+    var centralManager: CBCentralManager! // 기기를 검색하고 관리하는 변수
+    @Published var discoveredPeripheral: [(String, CBPeripheral)] = []  // 발견한 기기들 목록, 기기 이름과 기기로 구성된 리스트
+    @Published var receiveMessage = ""
     
-    @IBOutlet var textView: UITextView!
-    @IBOutlet weak var tableVIew: UITableView!
+    var receiveCharacteristic: CBCharacteristic?
+    var sendCharacteristic: CBCharacteristic?
+    var currentConnectionCount = 0
+    let maximumConnectionCount = 10
     
-    private var centralManager: CBCentralManager! // 기기를 검색하고 관리하는 변수
-    private var discoveredPeripheral: [(String, CBPeripheral)] = [] { // 발견한 기기들 목록, 기기 이름과 기기로 구성된 리스트
-        didSet {
-            self.tableVIew.reloadData()
-        }
-    }
-    private var receiveCharacteristic: CBCharacteristic?
-    private var sendCharacteristic: CBCharacteristic?
-    private var currentConnectionCount = 0
-    private let maximumConnectionCount = 10
     
-    private var dataList: [Data] = []
-    private let sendMessage = "I am central"
+    var dataList: [Data] = []
+    let sendMessage = "I am central"
     
-    override func viewDidLoad() {
+    func onAppear() {
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
-        super.viewDidLoad()
-        
-        self.tableVIew.dataSource = self
-        self.tableVIew.delegate = self
-        self.textView.layer.cornerRadius = 20
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
+    
+    func onDisAppear() {
+        receiveMessage.removeAll()
         centralManager.stopScan()
+        discoveredPeripheral.removeAll()
         os_log("Scanning stopped")
         dataList.removeAll(keepingCapacity: false)
     }
     
-    /// 기기 검색
-    private func retrievePeripheral() {
-        let scanOptions: [String: Any] = [
-            CBCentralManagerScanOptionSolicitedServiceUUIDsKey: [],
-            CBCentralManagerScanOptionAllowDuplicatesKey: false
-        ]
-        centralManager.scanForPeripherals(withServices: [TransferService.serviceUUID], options: scanOptions)
-        //        let connectedPeripherals: [CBPeripheral] = (centralManager.retrieveConnectedPeripherals(withServices: [TransferService.serviceUUID]))
-        //
-        //        os_log("Found connected Peripherals with transfer service: %@", connectedPeripherals)
-        //        if !connectedPeripherals.isEmpty {
-        //            os_log("Connecting to peripheral %@", connectedPeripherals)
-        //            self.discoveredPeripheral = connectedPeripherals
-        //            connectedPeripherals.forEach {
-        //                if !discoveredPeripheral.contains($0) {
-        //                    centralManager.connect($0, options: nil)
-        //                }
-        //            }
-        //        } else {
-        //            // We were not connected to our counterpart, so start scanning
-        //            centralManager.scanForPeripherals(withServices: [TransferService.serviceUUID],
-        //                                               options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
-        //        }
+    func connect(peripheral: CBPeripheral) {
+        centralManager.connect(peripheral, options: .none)
     }
     
     private func cleanup(uuid: String? = .none) {
@@ -90,9 +63,17 @@ class CentralViewController: UIViewController {
         }
     }
     
+    private func retrievePeripheral() {
+        let scanOptions: [String: Any] = [
+            CBCentralManagerScanOptionSolicitedServiceUUIDsKey: [],
+            CBCentralManagerScanOptionAllowDuplicatesKey: false
+        ]
+        centralManager.scanForPeripherals(withServices: [TransferService.serviceUUID], options: scanOptions)
+    }
+    
 }
 
-extension CentralViewController: CBCentralManagerDelegate {
+extension CentralViewModel: CBCentralManagerDelegate {
     internal func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
@@ -103,14 +84,7 @@ extension CentralViewController: CBCentralManagerDelegate {
         case .resetting:
             os_log("CBManager is resetting")
         case .unauthorized:
-            switch central.authorization {
-            case .denied:
-                os_log("You are not authorized to use Bluetooth")
-            case .restricted:
-                os_log("Bluetooth is restricted")
-            default:
-                os_log("Unexpected authorization")
-            }
+            os_log("You are not authorized to use Bluetooth")
         case .unknown:
             os_log("CBManager state is unknown")
         case .unsupported:
@@ -131,7 +105,7 @@ extension CentralViewController: CBCentralManagerDelegate {
         
         os_log("Discovered %s, UUID: %s %d", peripheralName, peripheral.identifier.uuidString, peripheral.ancsAuthorized)
         
-        if !discoveredPeripheral.map({$0.1}).contains(peripheral) {
+        if !discoveredPeripheral.map({$0.1.identifier}).contains(peripheral.identifier) {
             discoveredPeripheral.append((peripheralName, peripheral))
         }
     }
@@ -166,7 +140,7 @@ extension CentralViewController: CBCentralManagerDelegate {
     
 }
 
-extension CentralViewController: CBPeripheralDelegate {
+extension CentralViewModel: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
         for service in invalidatedServices  where service.uuid == TransferService.serviceUUID {
             os_log("Transfer service is invalidated - rediscover services")
@@ -220,9 +194,8 @@ extension CentralViewController: CBPeripheralDelegate {
         os_log("Received %d bytes: %s", characteristicData.count, stringFromData)
         
         DispatchQueue.main.async() {
-            guard stringFromData != "EOM" else {return}
-            let text = (peripheral.name ?? "기기이름") + ": " + stringFromData + "\n"
-            self.textView.text += text
+            guard !stringFromData.contains(TransferService.eomToken) else { return }
+            self.receiveMessage += stringFromData
             self.dataList.append(characteristicData)
         }
     }
@@ -238,23 +211,5 @@ extension CentralViewController: CBPeripheralDelegate {
             os_log("Notification stopped on %@. Disconnecting", characteristic)
             //            cleanup(uuid: characteristic.uuid.uuidString)
         }
-    }
-}
-
-extension CentralViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return discoveredPeripheral.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = UITableViewCell(style: .subtitle, reuseIdentifier: .none)
-        cell.textLabel?.text = discoveredPeripheral[indexPath.row].0
-        cell.detailTextLabel?.text = discoveredPeripheral[indexPath.row].1.identifier.uuidString
-        return cell
-    }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let peripherial = discoveredPeripheral[indexPath.row]
-        centralManager.connect(peripherial.1, options: .none)
     }
 }

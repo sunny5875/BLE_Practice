@@ -7,30 +7,34 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		012C3068226FD13B00BADEF9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012C3067226FD13B00BADEF9 /* AppDelegate.swift */; };
-		012C306D226FD13B00BADEF9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 012C306B226FD13B00BADEF9 /* Main.storyboard */; };
+		012C3068226FD13B00BADEF9 /* CoreBluetoothLESampleApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012C3067226FD13B00BADEF9 /* CoreBluetoothLESampleApp.swift */; };
 		012C306F226FD13B00BADEF9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 012C306E226FD13B00BADEF9 /* Assets.xcassets */; };
 		012C3072226FD13B00BADEF9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 012C3070226FD13B00BADEF9 /* LaunchScreen.storyboard */; };
-		012C307A226FD27600BADEF9 /* CentralViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012C3079226FD27600BADEF9 /* CentralViewController.swift */; };
-		012C307C226FD28C00BADEF9 /* PeripheralViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012C307B226FD28C00BADEF9 /* PeripheralViewController.swift */; };
+		012C307A226FD27600BADEF9 /* CentralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012C3079226FD27600BADEF9 /* CentralView.swift */; };
+		012C307C226FD28C00BADEF9 /* PeripheralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012C307B226FD28C00BADEF9 /* PeripheralView.swift */; };
 		012C307E226FD59500BADEF9 /* TransferService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 012C307D226FD59500BADEF9 /* TransferService.swift */; };
 		A9A7C756227E1D6200F2CC59 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A9A7C755227E1D6200F2CC59 /* README.md */; };
+		D685C6C62BD6065F009AB097 /* CentralViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D685C6C52BD6065F009AB097 /* CentralViewModel.swift */; };
+		D685C6CA2BD61819009AB097 /* TabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D685C6C92BD61819009AB097 /* TabView.swift */; };
+		D685C6CC2BD62155009AB097 /* PeripheralViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D685C6CB2BD62155009AB097 /* PeripheralViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		012C3064226FD13B00BADEF9 /* CoreBluetoothLESample.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreBluetoothLESample.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		012C3067226FD13B00BADEF9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		012C306C226FD13B00BADEF9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		012C3067226FD13B00BADEF9 /* CoreBluetoothLESampleApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoreBluetoothLESampleApp.swift; sourceTree = "<group>"; };
 		012C306E226FD13B00BADEF9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		012C3071226FD13B00BADEF9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		012C3073226FD13B00BADEF9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		012C3079226FD27600BADEF9 /* CentralViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralViewController.swift; sourceTree = "<group>"; };
-		012C307B226FD28C00BADEF9 /* PeripheralViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralViewController.swift; sourceTree = "<group>"; };
+		012C3079226FD27600BADEF9 /* CentralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralView.swift; sourceTree = "<group>"; };
+		012C307B226FD28C00BADEF9 /* PeripheralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralView.swift; sourceTree = "<group>"; };
 		012C307D226FD59500BADEF9 /* TransferService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferService.swift; sourceTree = "<group>"; };
 		53F76A1B5D2A119C156B3CA9 /* LICENSE.txt */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 		940DB595832554E780C12D56 /* SampleCode.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = SampleCode.xcconfig; path = Configuration/SampleCode.xcconfig; sourceTree = "<group>"; };
 		A9A7C755227E1D6200F2CC59 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		A9FCEFA72293634C008CC0CF /* MapKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MapKit.framework; path = System/Library/Frameworks/MapKit.framework; sourceTree = SDKROOT; };
+		D685C6C52BD6065F009AB097 /* CentralViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralViewModel.swift; sourceTree = "<group>"; };
+		D685C6C92BD61819009AB097 /* TabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabView.swift; sourceTree = "<group>"; };
+		D685C6CB2BD62155009AB097 /* PeripheralViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,11 +71,11 @@
 		012C3066226FD13B00BADEF9 /* CoreBluetoothLESample */ = {
 			isa = PBXGroup;
 			children = (
-				012C3067226FD13B00BADEF9 /* AppDelegate.swift */,
+				012C3067226FD13B00BADEF9 /* CoreBluetoothLESampleApp.swift */,
 				012C307D226FD59500BADEF9 /* TransferService.swift */,
-				012C3079226FD27600BADEF9 /* CentralViewController.swift */,
-				012C307B226FD28C00BADEF9 /* PeripheralViewController.swift */,
-				012C306B226FD13B00BADEF9 /* Main.storyboard */,
+				D685C6C92BD61819009AB097 /* TabView.swift */,
+				D685C6CE2BD6222A009AB097 /* Peripheral */,
+				D685C6CD2BD62226009AB097 /* Central */,
 				012C306E226FD13B00BADEF9 /* Assets.xcassets */,
 				012C3070226FD13B00BADEF9 /* LaunchScreen.storyboard */,
 				012C3073226FD13B00BADEF9 /* Info.plist */,
@@ -101,6 +105,24 @@
 				940DB595832554E780C12D56 /* SampleCode.xcconfig */,
 			);
 			name = Configuration;
+			sourceTree = "<group>";
+		};
+		D685C6CD2BD62226009AB097 /* Central */ = {
+			isa = PBXGroup;
+			children = (
+				D685C6C52BD6065F009AB097 /* CentralViewModel.swift */,
+				012C3079226FD27600BADEF9 /* CentralView.swift */,
+			);
+			path = Central;
+			sourceTree = "<group>";
+		};
+		D685C6CE2BD6222A009AB097 /* Peripheral */ = {
+			isa = PBXGroup;
+			children = (
+				012C307B226FD28C00BADEF9 /* PeripheralView.swift */,
+				D685C6CB2BD62155009AB097 /* PeripheralViewModel.swift */,
+			);
+			path = Peripheral;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -165,7 +187,6 @@
 				012C3072226FD13B00BADEF9 /* LaunchScreen.storyboard in Resources */,
 				012C306F226FD13B00BADEF9 /* Assets.xcassets in Resources */,
 				A9A7C756227E1D6200F2CC59 /* README.md in Resources */,
-				012C306D226FD13B00BADEF9 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,24 +197,19 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D685C6C62BD6065F009AB097 /* CentralViewModel.swift in Sources */,
 				012C307E226FD59500BADEF9 /* TransferService.swift in Sources */,
-				012C307A226FD27600BADEF9 /* CentralViewController.swift in Sources */,
-				012C3068226FD13B00BADEF9 /* AppDelegate.swift in Sources */,
-				012C307C226FD28C00BADEF9 /* PeripheralViewController.swift in Sources */,
+				012C307A226FD27600BADEF9 /* CentralView.swift in Sources */,
+				012C3068226FD13B00BADEF9 /* CoreBluetoothLESampleApp.swift in Sources */,
+				D685C6CC2BD62155009AB097 /* PeripheralViewModel.swift in Sources */,
+				D685C6CA2BD61819009AB097 /* TabView.swift in Sources */,
+				012C307C226FD28C00BADEF9 /* PeripheralView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		012C306B226FD13B00BADEF9 /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				012C306C226FD13B00BADEF9 /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		012C3070226FD13B00BADEF9 /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -332,7 +348,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 8AX6CPZA8P;
 				INFOPLIST_FILE = CoreBluetoothLESample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -354,7 +370,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 8AX6CPZA8P;
 				INFOPLIST_FILE = CoreBluetoothLESample/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

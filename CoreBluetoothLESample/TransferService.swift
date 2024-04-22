@@ -13,4 +13,6 @@ struct TransferService {
     // periperal 기준 characteristicUUID
 	static let receiveCharacteristicUUID = CBUUID(string: "08590F7E-DB05-467E-8757-72F6FAEB13D4")
     static let sendCharacteristicUUID = CBUUID(string: "8c380001-10bd-4fdb-ba21-1922d6cf860d")
+    
+    static let eomToken = "/EOM"
 }
