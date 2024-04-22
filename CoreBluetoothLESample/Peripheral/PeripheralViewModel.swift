@@ -109,7 +109,7 @@ extension PeripheralViewModel {
                                                              permissions: [.writeable])
         
         let transferCharacteristic2 = CBMutableCharacteristic(type: TransferService.sendCharacteristicUUID,
-                                                              properties: [.indicate],
+                                                              properties: [.notify],
                                                               value: nil,
                                                               permissions: [.readable])
         

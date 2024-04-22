@@ -12,6 +12,9 @@ import os
 
 struct PeripheralView: View {
     @StateObject var viewModel: PeripheralViewModel
+    
+    @FocusState private var isFocused: Bool
+    
     var body: some View {
         NavigationView {
             Form {
@@ -26,9 +29,13 @@ struct PeripheralView: View {
                         Text("블루투스 시작")
                     })
                     TextEditor(text: $viewModel.sendMessage)
-                        .onSubmit {
-                            viewModel.isOn = false
-                    }
+                        .focused($isFocused, equals: true)
+                    Button(action: {
+                        UIApplication.shared.endEditing()
+                    }, label: {
+                        Text("완료")
+                    })
+                    
                 }, header: {
                     Text("보내기")
                 })
@@ -44,3 +51,4 @@ struct PeripheralView: View {
         }
     }
 }
+

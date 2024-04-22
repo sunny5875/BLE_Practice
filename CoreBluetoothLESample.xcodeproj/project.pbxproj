@@ -17,6 +17,7 @@
 		D685C6C62BD6065F009AB097 /* CentralViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D685C6C52BD6065F009AB097 /* CentralViewModel.swift */; };
 		D685C6CA2BD61819009AB097 /* TabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D685C6C92BD61819009AB097 /* TabView.swift */; };
 		D685C6CC2BD62155009AB097 /* PeripheralViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D685C6CB2BD62155009AB097 /* PeripheralViewModel.swift */; };
+		D685C6D02BD64FC7009AB097 /* UIApplication+.swift in Sources */ = {isa = PBXBuildFile; fileRef = D685C6CF2BD64FC7009AB097 /* UIApplication+.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -35,6 +36,7 @@
 		D685C6C52BD6065F009AB097 /* CentralViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralViewModel.swift; sourceTree = "<group>"; };
 		D685C6C92BD61819009AB097 /* TabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabView.swift; sourceTree = "<group>"; };
 		D685C6CB2BD62155009AB097 /* PeripheralViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PeripheralViewModel.swift; sourceTree = "<group>"; };
+		D685C6CF2BD64FC7009AB097 /* UIApplication+.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIApplication+.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +81,7 @@
 				012C306E226FD13B00BADEF9 /* Assets.xcassets */,
 				012C3070226FD13B00BADEF9 /* LaunchScreen.storyboard */,
 				012C3073226FD13B00BADEF9 /* Info.plist */,
+				D685C6CF2BD64FC7009AB097 /* UIApplication+.swift */,
 			);
 			path = CoreBluetoothLESample;
 			sourceTree = "<group>";
@@ -201,6 +204,7 @@
 				012C307E226FD59500BADEF9 /* TransferService.swift in Sources */,
 				012C307A226FD27600BADEF9 /* CentralView.swift in Sources */,
 				012C3068226FD13B00BADEF9 /* CoreBluetoothLESampleApp.swift in Sources */,
+				D685C6D02BD64FC7009AB097 /* UIApplication+.swift in Sources */,
 				D685C6CC2BD62155009AB097 /* PeripheralViewModel.swift in Sources */,
 				D685C6CA2BD61819009AB097 /* TabView.swift in Sources */,
 				012C307C226FD28C00BADEF9 /* PeripheralView.swift in Sources */,

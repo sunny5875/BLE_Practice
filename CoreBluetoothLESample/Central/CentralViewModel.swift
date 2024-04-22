@@ -184,7 +184,6 @@ extension CentralViewModel: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
             os_log("Error discovering characteristics: %s", error.localizedDescription)
-            //            cleanup(uuid: characteristic.uuid.uuidString)
             return
         }
         
@@ -209,7 +208,6 @@ extension CentralViewModel: CBPeripheralDelegate {
             os_log("Notification began on %@", characteristic)
         } else {
             os_log("Notification stopped on %@. Disconnecting", characteristic)
-            //            cleanup(uuid: characteristic.uuid.uuidString)
         }
     }
 }
