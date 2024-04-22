@@ -202,12 +202,12 @@ extension PeripheralViewModel {
                         "expirationDate": "1706900000",
                         "credentialSubjects": {
                             "id": "did:waff:W6hLpTWEbsUW/0Hs6NglWF3g",
-                            "name": "전효진",
+                            "name": "홍길순",
                             "subjects": [{
                                 "document": {
                                     "name": "학생증",
                                     "contents": [
-                                        { "key": "이름", "value": "전효진" },
+                                        { "key": "이름", "value": "홍길순" },
                                         { "key": "학번", "value": "2018380355" },
                                         { "key": "학과", "value": "컴퓨터소프트웨어학과" },
                                         { "key": "입학년월", "value": "2018.03" }
@@ -245,10 +245,10 @@ extension PeripheralViewModel {
                 },
     
                 "vp_certification": {
-                    "certificationName": "전효진의 인증서",
+                    "certificationName": "홍길순의 인증서",
                     "signatureAlgorithm": "secp256k1",
                     "id": "did:waff:W6hLpTWEbsUW/0Hs6NglWF3g",
-                    "name": "전효진",
+                    "name": "홍길순",
                     "pubKey": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAESnJ+xVVzWWs0zIJiUJEsPvvnZFBLdCRPAo1eNcP0ouE5gQIhL1Q/ykhLSQHozSW6hLpTWEbsUW/0Hs6NglWF3g==\n-----END PUBLIC KEY-----",
                     "created": "1705923050"
                 }
