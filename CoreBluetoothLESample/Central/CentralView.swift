@@ -20,6 +20,9 @@ struct CentralView: View {
                 }, header:  {
                     Text("받은 결과")
                         .frame(alignment: .leading)
+                        .onLongPressGesture {
+                            UIPasteboard.general.string = viewModel.receiveMessage
+                        }
                 })
                 
                 Section(content: {

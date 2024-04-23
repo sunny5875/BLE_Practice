@@ -22,6 +22,9 @@ struct PeripheralView: View {
                     Text(viewModel.receiveMessage)
                 }, header: {
                     Text("받은 메세지")
+                        .onLongPressGesture {
+                            UIPasteboard.general.string = viewModel.receiveMessage
+                        }
                 })
                 
                 Section(content: {

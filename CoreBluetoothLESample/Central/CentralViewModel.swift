@@ -22,8 +22,14 @@ class CentralViewModel: NSObject, ObservableObject {
     let maximumConnectionCount = 10
     
     
+    var dataToSend = Data()
+    var sentCount = 0
+    var sendDataIndex: Int = 0
+    static var sendingEOM = false
+    
+    
     var dataList: [Data] = []
-    let sendMessage = "I am central"
+    let sendMessage = TransferService.mockMessage
     
     func onAppear() {
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
@@ -151,7 +157,6 @@ extension CentralViewModel: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         if let error = error {
             os_log("Error discovering services: %s", error.localizedDescription)
-            cleanup()
             return
         }
         
@@ -174,16 +179,58 @@ extension CentralViewModel: CBPeripheralDelegate {
                     
                 } else if characteristic.uuid == TransferService.receiveCharacteristicUUID {
                     sendCharacteristic = characteristic
-                    let data = sendMessage.data(using: .utf8)
-                    peripheral.writeValue(data!, for: characteristic, type: .withResponse)
+//                    let data = sendMessage.data(using: .utf8)
+//                    peripheral.writeValue(data!, for: characteristic, type: .withResponse)
+                    dataToSend = sendMessage.data(using: .utf8)!
+                    sendData(peripheral)
                 }
             }
         }
     }
     
+    
+    private func sendData(_ peripheral: CBPeripheral) {
+        guard let sendCharacteristic 
+        else { return }
+        
+        
+        while  sendDataIndex < dataToSend.count {
+            if CentralViewModel.sendingEOM || sendDataIndex >= dataToSend.count {
+                peripheral.writeValue(TransferService.eomToken.data(using: .utf8)!, for: sendCharacteristic, type: .withoutResponse)
+                CentralViewModel.sendingEOM = false
+                os_log("Sent: /EOM")
+                return
+            } else {
+                var amountToSend = dataToSend.count - sendDataIndex
+                let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
+                amountToSend = min(amountToSend, mtu)
+                let chunk = dataToSend.subdata(in: sendDataIndex..<(sendDataIndex + amountToSend))
+                peripheral.writeValue(chunk, for: sendCharacteristic, type: .withoutResponse)
+                
+                let stringFromData = String(data: chunk, encoding: .utf8)
+                os_log("Sent %d bytes: %s", chunk.count, String(describing: stringFromData))
+                sendDataIndex += amountToSend
+                sentCount += 1
+            }
+        }
+    }
+    
+    
+    
+    
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: (any Error)?) {
+        if let error = error {
+            os_log("Error didWriteValueFor %s characteristics: %s", characteristic.uuid.uuidString, error.localizedDescription)
+            return
+        }
+        if characteristic.uuid == TransferService.receiveCharacteristicUUID {
+            sendData(peripheral)
+        }
+    }
+    
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         if let error = error {
-            os_log("Error discovering characteristics: %s", error.localizedDescription)
+            os_log("Error didWriteValueFor %s characteristics: %s", characteristic.uuid.uuidString, error.localizedDescription)
             return
         }
         
