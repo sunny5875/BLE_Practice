@@ -12,42 +12,44 @@ import CoreBluetooth
 import Combine
 
 class CentralViewModel: NSObject, ObservableObject {
-    var centralManager: CBCentralManager! // 기기를 검색하고 관리하는 변수
+    
     @Published var discoveredPeripheral: [(String, CBPeripheral)] = []  // 발견한 기기들 목록, 기기 이름과 기기로 구성된 리스트
     @Published var receiveMessage = ""
     
-    var receiveCharacteristic: CBCharacteristic?
-    var sendCharacteristic: CBCharacteristic?
-    var currentConnectionCount = 0
-    let maximumConnectionCount = 10
+    private var centralManager: CBCentralManager! // 기기를 검색하고 관리하는 변수
     
+    private var currentConnectionCount = 0
+    private let maximumConnectionCount = 10
     
-    var dataToSend = Data()
-    var sentCount = 0
-    var sendDataIndex: Int = 0
+    private var receiveCharacteristic: CBCharacteristic?
+    private var sendCharacteristic: CBCharacteristic?
+    
+    private var dataToSend = Data()
+    private var sentCount = 0
+    private var sendIndex: Int = 0
     static var sendingEOM = false
     
-    
-    var dataList: [Data] = []
-    let sendMessage = TransferService.mockMessage
+    private var receiveDataList: [Data] = []
+    private let sendMessage = TransferService.mockMessage
     
     func onAppear() {
         centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey: true])
     }
     
-    
-    func onDisAppear() {
+    func onDisappear() {
         receiveMessage.removeAll()
         centralManager.stopScan()
         discoveredPeripheral.removeAll()
         os_log("Scanning stopped")
-        dataList.removeAll(keepingCapacity: false)
+        receiveDataList.removeAll(keepingCapacity: false)
     }
     
     func connect(peripheral: CBPeripheral) {
         centralManager.connect(peripheral, options: .none)
     }
-    
+}
+
+extension CentralViewModel: CBCentralManagerDelegate {
     private func cleanup(uuid: String? = .none) {
         guard discoveredPeripheral.count != 0 else { return }
         
@@ -77,9 +79,7 @@ class CentralViewModel: NSObject, ObservableObject {
         centralManager.scanForPeripherals(withServices: [TransferService.serviceUUID], options: scanOptions)
     }
     
-}
-
-extension CentralViewModel: CBCentralManagerDelegate {
+    
     internal func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .poweredOn:
@@ -127,7 +127,7 @@ extension CentralViewModel: CBCentralManagerDelegate {
         
         currentConnectionCount += 1
         
-        dataList.removeAll(keepingCapacity: false)
+        receiveDataList.removeAll(keepingCapacity: false)
         peripheral.delegate = self
         peripheral.discoverServices([TransferService.serviceUUID])
     }
@@ -172,17 +172,14 @@ extension CentralViewModel: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         if let characteristics = service.characteristics {
             for characteristic in characteristics {
-                if characteristic.uuid == TransferService.sendCharacteristicUUID {
+                if characteristic.uuid == TransferService.receiveCharacteristicUUID {
+                    sendCharacteristic = characteristic
+                    dataToSend = sendMessage.data(using: .utf8)!
+                    sendData(peripheral)
+                } else if characteristic.uuid == TransferService.sendCharacteristicUUID {
                     receiveCharacteristic = characteristic
                     peripheral.setNotifyValue(true, for: characteristic)
                     peripheral.readValue(for: characteristic)
-                    
-                } else if characteristic.uuid == TransferService.receiveCharacteristicUUID {
-                    sendCharacteristic = characteristic
-//                    let data = sendMessage.data(using: .utf8)
-//                    peripheral.writeValue(data!, for: characteristic, type: .withResponse)
-                    dataToSend = sendMessage.data(using: .utf8)!
-                    sendData(peripheral)
                 }
             }
         }
@@ -193,28 +190,26 @@ extension CentralViewModel: CBPeripheralDelegate {
         guard let sendCharacteristic 
         else { return }
         
-        
-        while  sendDataIndex < dataToSend.count {
-            if CentralViewModel.sendingEOM || sendDataIndex >= dataToSend.count {
+        while  sendIndex < dataToSend.count {
+            if CentralViewModel.sendingEOM || sendIndex >= dataToSend.count {
                 peripheral.writeValue(TransferService.eomToken.data(using: .utf8)!, for: sendCharacteristic, type: .withoutResponse)
                 CentralViewModel.sendingEOM = false
                 os_log("Sent: /EOM")
                 return
             } else {
-                var amountToSend = dataToSend.count - sendDataIndex
+                var amountToSend = dataToSend.count - sendIndex
                 let mtu = peripheral.maximumWriteValueLength(for: .withoutResponse)
                 amountToSend = min(amountToSend, mtu)
-                let chunk = dataToSend.subdata(in: sendDataIndex..<(sendDataIndex + amountToSend))
+                let chunk = dataToSend.subdata(in: sendIndex..<(sendIndex + amountToSend))
                 peripheral.writeValue(chunk, for: sendCharacteristic, type: .withoutResponse)
                 
                 let stringFromData = String(data: chunk, encoding: .utf8)
                 os_log("Sent %d bytes: %s", chunk.count, String(describing: stringFromData))
-                sendDataIndex += amountToSend
+                sendIndex += amountToSend
                 sentCount += 1
             }
         }
     }
-    
     
     
     
@@ -235,15 +230,15 @@ extension CentralViewModel: CBPeripheralDelegate {
         }
         
         guard let characteristicData = characteristic.value,
-              let stringFromData = String(data: characteristicData, encoding: .utf8) else { return }
+              let stringFromData = String(data: characteristicData, encoding: .utf8) 
+        else { return }
         
         os_log("Received %d bytes: %s", characteristicData.count, stringFromData)
         
-        DispatchQueue.main.async() {
-            guard !stringFromData.contains(TransferService.eomToken) else { return }
-            self.receiveMessage += stringFromData
-            self.dataList.append(characteristicData)
-        }
+        guard !stringFromData.contains(TransferService.eomToken) 
+        else { return }
+        self.receiveMessage += stringFromData
+        self.receiveDataList.append(characteristicData)
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {

@@ -42,7 +42,7 @@ struct CentralView: View {
             viewModel.onAppear()
         }
         .onDisappear {
-            viewModel.onDisAppear()
+            viewModel.onDisappear()
         }
     }
     

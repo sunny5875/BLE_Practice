@@ -12,7 +12,6 @@ import os
 
 struct PeripheralView: View {
     @StateObject var viewModel: PeripheralViewModel
-    
     @FocusState private var isFocused: Bool
     
     var body: some View {
@@ -42,13 +41,12 @@ struct PeripheralView: View {
                 }, header: {
                     Text("보내기")
                 })
-                
             }
             .onAppear {
-                viewModel.viewDidLoad()
+                viewModel.onAppear()
             }
             .onDisappear {
-                viewModel.viewWillDisappear()
+                viewModel.onDisappear()
             }
             .navigationTitle("Peripheral")
         }

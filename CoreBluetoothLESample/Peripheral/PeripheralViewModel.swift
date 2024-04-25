@@ -12,22 +12,22 @@ import OSLog
 import Combine
 
 class PeripheralViewModel: NSObject, ObservableObject {
-    
-    private var store = Set<AnyCancellable>()
+
     @Published var isOn = false
     @Published var sendMessage = TransferService.mockMessage
     @Published var receiveMessage = ""
     
-    var peripheralManager: CBPeripheralManager!
+    private var store = Set<AnyCancellable>()
+    private var peripheralManager: CBPeripheralManager!
     
-    var receiveCharacteristic: CBMutableCharacteristic?
-    var sendCharacteristic: CBMutableCharacteristic?
-    var connectedCentral: CBCentral?
-    var dataToSend = Data()
-    var sendDataIndex: Int = 0
+    private var receiveCharacteristic: CBMutableCharacteristic?
+    private var sendCharacteristic: CBMutableCharacteristic?
+    private var connectedCentral: CBCentral?
+    private var dataToSend = Data()
+    private var sendIndex: Int = 0
     static var sendingEOM = false
     
-    func viewDidLoad() {
+    func onAppear() {
         peripheralManager = CBPeripheralManager(delegate: self, queue: nil, options: [CBPeripheralManagerOptionShowPowerAlertKey: true])
         
         $isOn.sink { value in
@@ -40,7 +40,7 @@ class PeripheralViewModel: NSObject, ObservableObject {
         }.store(in: &store)
     }
     
-    func viewWillDisappear() {
+    func onDisappear() {
         peripheralManager.stopAdvertising()
         receiveMessage.removeAll()
         PeripheralViewModel.sendingEOM = false
@@ -49,11 +49,9 @@ class PeripheralViewModel: NSObject, ObservableObject {
 
 
 extension PeripheralViewModel {
-    
     private func sendData() {
-        guard let sendCharacteristic, let connectedCentral else {
-            return
-        }
+        guard let sendCharacteristic, let connectedCentral 
+        else { return }
         
         if PeripheralViewModel.sendingEOM {
             let didSend = peripheralManager.updateValue(TransferService.eomToken.data(using: .utf8)!, for: sendCharacteristic, onSubscribedCentrals: [connectedCentral])
@@ -64,16 +62,16 @@ extension PeripheralViewModel {
             return
         }
         
-        if sendDataIndex >= dataToSend.count {
+        if sendIndex >= dataToSend.count {
             return
         }
         
         var didSend = true
         while didSend {
-            var amountToSend = dataToSend.count - sendDataIndex
+            var amountToSend = dataToSend.count - sendIndex
             let mtu = connectedCentral.maximumUpdateValueLength
             amountToSend = min(amountToSend, mtu)
-            let chunk = dataToSend.subdata(in: sendDataIndex..<(sendDataIndex + amountToSend))
+            let chunk = dataToSend.subdata(in: sendIndex..<(sendIndex + amountToSend))
             
             didSend = peripheralManager.updateValue(chunk, for: sendCharacteristic, onSubscribedCentrals: [connectedCentral])
             
@@ -84,12 +82,15 @@ extension PeripheralViewModel {
             let stringFromData = String(data: chunk, encoding: .utf8)
             os_log("Sent %d bytes: %s", chunk.count, String(describing: stringFromData))
             
-            sendDataIndex += amountToSend
+            sendIndex += amountToSend
             
-            if sendDataIndex >= dataToSend.count {// 마지막인 경우
+            if sendIndex >= dataToSend.count { // 마지막인 경우
                 PeripheralViewModel.sendingEOM = true
-                let eomSent = peripheralManager.updateValue(TransferService.eomToken.data(using: .utf8)!,
-                                                            for: sendCharacteristic, onSubscribedCentrals: nil)
+                let eomSent = peripheralManager.updateValue(
+                    TransferService.eomToken.data(using: .utf8)!,
+                    for: sendCharacteristic,
+                    onSubscribedCentrals: nil
+                )
                 
                 if eomSent {
                     PeripheralViewModel.sendingEOM = false
@@ -114,7 +115,6 @@ extension PeripheralViewModel {
                                                               permissions: [.readable])
         
         transferService.characteristics = [transferCharacteristic2, transferCharacteristic]
-        
         peripheralManager.add(transferService)
         
         self.sendCharacteristic = transferCharacteristic2
@@ -148,7 +148,7 @@ extension PeripheralViewModel: CBPeripheralManagerDelegate {
     func peripheralManager(_ peripheral: CBPeripheralManager, central: CBCentral, didSubscribeTo characteristic: CBCharacteristic) {
         os_log("Central subscribed to characteristic")
         dataToSend = sendMessage.data(using: .utf8)!
-        sendDataIndex = 0
+        sendIndex = 0
         connectedCentral = central
         sendData()
     }
@@ -172,7 +172,6 @@ extension PeripheralViewModel: CBPeripheralManagerDelegate {
     
     /// 데이터를 받은 경우
     func peripheralManager(_ peripheral: CBPeripheralManager, didReceiveWrite requests: [CBATTRequest]) {
-        
         for aRequest in requests {
             guard let requestValue = aRequest.value,
                   let stringFromData = String(data: requestValue, encoding: .utf8) else {
